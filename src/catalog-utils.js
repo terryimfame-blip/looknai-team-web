@@ -18,6 +18,19 @@ export function filterPublicRecords(records, { search = '', project = '', lot = 
     (!lot || record.lot === lot));
 }
 
+export function projectOptions(allClips) {
+  return [...new Set(allClips.map(clip => clip.project).filter(Boolean))].sort();
+}
+
+export function lotOptions(allClips, selectedProject = '') {
+  return [...new Set(allClips.filter(clip => !selectedProject || clip.project === selectedProject)
+    .map(clip => clip.lot).filter(Boolean))].sort();
+}
+
+export function selectProject(selection, project) {
+  return { ...selection, project, lot: '' };
+}
+
 export function lazyRequestPaths(paths, limit = INITIAL_THUMBNAIL_LIMIT) {
   return [...new Set(paths.filter(Boolean))].slice(0, limit);
 }
