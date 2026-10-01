@@ -13,7 +13,7 @@ test('Team Web reads only public Firebase data without auth, writes, or localhos
   const source = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(source, /collection\(db, 'public_clips'\)/);
   assert.doesNotMatch(source, /published_clips|\/api\/team\/|127\.0\.0\.1|localhost/);
-  assert.match(source, /from 'firebase\/firestore'/);
+  assert.match(source, /import\('firebase\/firestore'\)/);
   assert.doesNotMatch(source, /firebase\/storage|getStorage|getBlob/);
   assert.doesNotMatch(source, /signInWithPopup|GoogleAuthProvider|onAuthStateChanged|signOut/);
   assert.doesNotMatch(source, /\b(?:setDoc|addDoc|updateDoc|deleteDoc|writeBatch|runTransaction)\b/);

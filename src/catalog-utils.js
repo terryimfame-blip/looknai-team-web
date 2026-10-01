@@ -44,3 +44,13 @@ export function approvedThumbnailUrl(record) {
       record.thumbnailPath !== `thumbnails/${id}/v${version}.webp`) return '';
   return record.thumbnailPath;
 }
+
+export function approvedPreviewUrl(record, basePath = '/') {
+  const path = record?.previewPath;
+  const revision = record?.previewRevision;
+  if (record?.previewAvailable !== true || typeof path !== 'string' ||
+      !/^previews\/[0-9a-f]{12,64}\.webp$/.test(path) ||
+      !Number.isInteger(revision) || revision < 1) return '';
+  const base = `/${String(basePath).replace(/^\/+|\/+$/g, '')}`.replace(/\/$/, '');
+  return `${base}/${path}?v=${encodeURIComponent(revision)}`;
+}

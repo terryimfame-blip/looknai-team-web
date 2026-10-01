@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { visiblePage, filterPublicRecords, filenameSearchKey, approvedThumbnailUrl } from '../src/catalog-utils.js';
+import { visiblePage, filterPublicRecords, filenameSearchKey, approvedPreviewUrl } from '../src/catalog-utils.js';
 
 const source = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const styles = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
@@ -14,11 +14,14 @@ test('media catalog keeps the initial page small and debounces search', () => {
   assert.match(source, /where\('published', '==', true\)/);
 });
 
-test('Spark release shows media placeholders without Firebase Storage calls', () => {
+test('approved Pages previews lazy-load and fall back without a source-media download', () => {
   assert.match(source, /media-placeholder/);
-  assert.match(source, /fileType\(record\.filename\)/);
+  assert.match(source, /approvedPreviewUrl\(record, import\.meta\.env\.BASE_URL\)/);
+  assert.match(source, /loading="lazy"/);
+  assert.match(source, /decoding="async"/);
+  assert.match(source, /addEventListener\('error'/);
   assert.doesNotMatch(source, /firebase\/storage|getStorage|getBlob|resolveThumbnail/);
-  assert.doesNotMatch(source, /<video|base64/);
+  assert.doesNotMatch(source, /<video|base64|download=/);
 });
 
 test('fixture and responsive preview card UI are present', () => {
@@ -63,13 +66,12 @@ test('public search, project, and lot filters use only published records', () =>
   assert.equal(filterPublicRecords(rows).length, 3);
 });
 
-test('published-only preview requires exact ClipID and version; local-only and broken refs stay placeholders', () => {
-  const id = '01234567-89ab-4cde-8123-456789abcdef';
-  const ref = { id, published: true, thumbnailVersion: '0123456789abcdef',
-    thumbnailPath: `thumbnails/${id}/v0123456789abcdef.webp` };
-  assert.equal(approvedThumbnailUrl(ref), ref.thumbnailPath);
-  assert.equal(approvedThumbnailUrl({ ...ref, published: false }), '');
-  assert.equal(approvedThumbnailUrl({ ...ref, thumbnailPath: '' }), '');
-  assert.equal(approvedThumbnailUrl({ ...ref, thumbnailPath: 'thumbnails/other/v0123456789abcdef.webp' }), '');
-  assert.equal(approvedThumbnailUrl({ ...ref, id: 'not-a-clip-id' }), '');
+test('public preview contract uses the Pages base path and rejects unsafe metadata', () => {
+  const ref = { previewAvailable: true, previewPath: `previews/${'a'.repeat(24)}.webp`, previewRevision: 2 };
+  assert.equal(approvedPreviewUrl(ref, '/looknai-team-web/'), `/looknai-team-web/${ref.previewPath}?v=2`);
+  assert.equal(approvedPreviewUrl({ ...ref, previewAvailable: false }), '');
+  assert.equal(approvedPreviewUrl({ ...ref, previewPath: '/Volumes/private.webp' }), '');
+  assert.equal(approvedPreviewUrl({ ...ref, previewPath: 'previews/client-name.webp' }), '');
+  assert.equal(approvedPreviewUrl({ ...ref, previewRevision: 0 }), '');
+  assert.equal(approvedPreviewUrl({ ...ref, previewRevision: true }), '');
 });

@@ -1,6 +1,8 @@
 # LookNai Team Web
 
-A read-only catalog of published LookNai footage. The static site reads the public `public_clips` collection directly through the Firebase Web SDK. Media previews are placeholders in this Spark release.
+A read-only catalog of published YEP! footage. The static site opens behind a session-only team PIN gate, then reads the public `public_clips` collection directly through the Firebase Web SDK. The gate is a convenience check, not authentication: Firestore remains the access boundary.
+
+Cards render a static GitHub Pages WebP only when the public document explicitly contains valid `previewAvailable`, `previewPath`, and `previewRevision` fields. Images load lazily from the Pages base path and revert to the media placeholder if unavailable. The catalog never downloads source media.
 
 ## Development
 
